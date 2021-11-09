@@ -14,8 +14,8 @@ libcuda-matrix.so: libcuda-matrix.cu
 test: test.cpp
 	$(NVCC) $(OPT) -lcublas -lcuda-matrix -L. -I. $^ -o $@
 
-test1: test.cu
-	$(NVCC) $(OPT) $^ -o $@
+nmf: nmf.cpp
+	$(NVCC) $(OPT) -lcublas -lcuda-matrix -L. -I. $^ -o $@
 
 install: libcuda-matrix.so
 	install -s $^ $(libdir)

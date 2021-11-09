@@ -10,14 +10,14 @@ int main(){
 
     for(long i = 0; i < 12; i++){
         a_mat[i] = i + 1;
-        b_mat[i] = i + 1;
+        b_mat[i] = i + 11;
     }
         
 
     CuMatrix<float> a(3, 4, a_mat);    
-    CuMatrix<float> b(4, 3, b_mat);
+    CuMatrix<float> b(3, 4, b_mat);
 
-    CuMatrix<float> c = a * b;
+    CuMatrix<float> c = a.times(b);
 
     a.inspect();
     b.inspect();
