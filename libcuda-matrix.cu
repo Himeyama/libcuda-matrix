@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cublas.h>
 #include <random>
+#include <typeinfo>
 
 template <class T>
 class CuMatrix{

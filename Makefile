@@ -17,6 +17,9 @@ test: test.cpp
 nmf: nmf.cpp
 	$(NVCC) $(OPT) -lcublas -lcuda-matrix -L. -I. $^ -o $@
 
+nmf-hals: nmf-hals.cpp
+	$(NVCC) $(OPT) -lcublas -lcuda-matrix -L. -I. $^ -o $@
+
 install: libcuda-matrix.so
 	install -s $^ $(libdir)
 	cp cuda-nmf.hpp $(incdir)
