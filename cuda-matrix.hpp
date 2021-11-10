@@ -4,15 +4,16 @@
 template <class T>
 class CuMatrix{
     private:
-    T *dMat;
+    
 
     public:
+        T *dMat;
         long rowSize;
         long colSize;
 
     public:
         CuMatrix();
-        CuMatrix(long row, long col, T *mat);
+        CuMatrix(long row, long col, T *mat, bool mode = true);
         
         static CuMatrix rand(long row, long col);
         static CuMatrix I(long, T = 1);

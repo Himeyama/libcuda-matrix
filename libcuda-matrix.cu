@@ -4,20 +4,26 @@
 #include <typeinfo>
 
 template <class T>
-class CuMatrix{
-    private:
-    T *dMat;
-
+class CuMatrix{  
     public:
+    T *dMat;
     long rowSize;
     long colSize;
+    bool alloced;
 
     CuMatrix(){};
 
-    CuMatrix(long row, long col, T *mat){
+    CuMatrix(long row, long col, T *mat, bool mode = true){
+        // mode == true ? host : device
         rowSize = row;
         colSize = col;
-        cublasAlloc(row * col, sizeof(T), (void**)&dMat);
+        alloced = false;
+        if(mode){
+            cublasAlloc(row * col, sizeof(T), (void**)&dMat);
+            alloced = true;
+        }else
+            dMat = mat;
+        
         bool zero = false;
         if(mat == NULL){
             mat = (T*)malloc(sizeof(T) * row * col);
@@ -50,33 +56,35 @@ class CuMatrix{
     }
 
     void freeMat(){
-        cublasFree(dMat);
+        if(alloced)
+            cublasFree(dMat);
+        alloced = false;
+    }
+
+    // 型によって関数を分ける
+    void cublasGemm(char transa, char transb, int m, int n, int k, float alpha, const float *A, int lda, const float *B, int ldb, float beta, float *C, int ldc){
+        cublasSgemm(transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+
+    void cublasGemm(char transa, char transb, int m, int n, int k, double alpha, const double *A, int lda, const double *B, int ldb, double beta, double *C, int ldc){
+        cublasDgemm(transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc); 
     }
 
     CuMatrix<T> tdot(CuMatrix<T> b){
         CuMatrix<T> c(colSize, b.colSize, NULL);
-        if(typeid(T) == typeid(float))
-            cublasSgemm('T', 'N', c.rowSize, c.colSize, b.rowSize, 1, (const float*)dMat, rowSize, (const float*)b.dMat, b.rowSize, 0, (float*)c.dMat, c.rowSize);
-        else if(typeid(T) == typeid(double))
-            cublasDgemm('T', 'N', c.rowSize, c.colSize, b.rowSize, 1, (const double*)dMat, rowSize, (const double*)b.dMat, b.rowSize, 0, (double*)c.dMat, c.rowSize);
+        cublasGemm('T', 'N', c.rowSize, c.colSize, b.rowSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
         return c;
     }
 
     CuMatrix<T> dott(CuMatrix<T> b){
         CuMatrix<T> c(rowSize, b.rowSize, NULL);
-        if(typeid(T) == typeid(float))
-            cublasSgemm('N', 'T', c.rowSize, c.colSize, rowSize, 1, (const float*)dMat, rowSize, (const float*)b.dMat, b.rowSize, 0, (float*)c.dMat, c.rowSize);
-        else if(typeid(T) == typeid(double))
-            cublasDgemm('N', 'T', c.rowSize, c.colSize, rowSize, 1, (const double*)dMat, rowSize, (const double*)b.dMat, b.rowSize, 0, (double*)c.dMat, c.rowSize);
+        cublasGemm('N', 'T', c.rowSize, c.colSize, rowSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
         return c;
     }
 
     CuMatrix<T> operator*(CuMatrix<T> b){
         CuMatrix<T> c(rowSize, b.colSize, NULL);
-        if(typeid(T) == typeid(float))
-            cublasSgemm('N', 'N', c.rowSize, c.colSize, colSize, 1, (const float*)dMat, rowSize, (const float*)b.dMat, b.rowSize, 0, (float*)c.dMat, c.rowSize);
-        else if(typeid(T) == typeid(double))
-            cublasDgemm('N', 'N', c.rowSize, c.colSize, colSize, 1, (const double*)dMat, rowSize, (const double*)b.dMat, b.rowSize, 0, (double*)c.dMat, c.rowSize);
+        cublasGemm('N', 'N', c.rowSize, c.colSize, colSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
         return c;
     }
 
