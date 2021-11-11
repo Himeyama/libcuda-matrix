@@ -2,6 +2,7 @@
 #include <cublas.h>
 #include <random>
 #include <typeinfo>
+#include <list>
 
 template <class T>
 class CuMatrix{  
@@ -13,7 +14,7 @@ class CuMatrix{
 
     CuMatrix(){};
 
-    CuMatrix(long row, long col, T *mat, bool mode = true){
+    CuMatrix(long row, long col, T *mat = NULL, bool mode = true){
         // mode == true ? host : device
         rowSize = row;
         colSize = col;
@@ -21,8 +22,10 @@ class CuMatrix{
         if(mode){
             cublasAlloc(row * col, sizeof(T), (void**)&dMat);
             alloced = true;
-        }else
+        }else{
             dMat = mat;
+            alloced = true;
+        }
         
         bool zero = false;
         if(mat == NULL){
@@ -44,6 +47,12 @@ class CuMatrix{
         CuMatrix<T> r(row, col, x);
         free(x);
         return r;
+    }
+
+    CuMatrix copy(){
+        CuMatrix<T> cp(rowSize, colSize);
+        cublasCopy(rowSize * colSize, dMat, 1, cp.dMat, 1);
+        return cp;
     }
 
     static CuMatrix I(long n, T k = 1){
@@ -80,6 +89,26 @@ class CuMatrix{
         CuMatrix<T> c(rowSize, b.rowSize, NULL);
         cublasGemm('N', 'T', c.rowSize, c.colSize, rowSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
         return c;
+    }
+
+    void cublasAxpy(int n, float alpha, const float *x, int incx, float *y, int incy){
+        cublasSaxpy(n, alpha, x, incx, y, incy);
+    }
+
+    void cublasAxpy(int n, double alpha, const double *x, int incx, double *y, int incy){
+        cublasDaxpy(n, alpha, x, incx, y, incy);
+    }
+
+    void operator+=(CuMatrix<T> b){
+        if(rowSize == b.rowSize && colSize == b.colSize)
+            std::cerr << "+(CuMatrix): 二つの行列の大きさが異なります" << std::endl;
+        cublasAxpy(rowSize * colSize, 1, b.dMat, 1, dMat, 1);
+    }
+
+    void operator-=(CuMatrix<T> b){
+        if(rowSize == b.rowSize && colSize == b.colSize)
+            std::cerr << "-(CuMatrix): 二つの行列の大きさが異なります" << std::endl;
+        cublasAxpy(rowSize * colSize, -1, b.dMat, 1, dMat, 1);
     }
 
     CuMatrix<T> operator*(CuMatrix<T> b){
@@ -153,6 +182,34 @@ class CuMatrix{
         T *mat = (T*)malloc(sizeof(T) * rowSize * colSize);
         cublasGetMatrix(rowSize, colSize, sizeof(T), dMat, rowSize, mat, rowSize);
         return mat;
+    }
+
+    void cublasCopy(int n, const float *x, int incx, float *y, int incy){
+        cublasScopy(n, x, incx, y, incy);
+    }
+
+    void cublasCopy(int n, const double *x, int incx, double *y, int incy){
+        cublasDcopy(n, x, incx, y, incy);
+    }
+
+    CuMatrix<T> getRow(long i, T* d_vec = NULL){
+        if(d_vec == NULL)
+            cublasAlloc(colSize, sizeof(T), (void**)&d_vec);
+        cublasCopy(colSize, dMat + colSize * i, 1, d_vec, 1);
+        return CuMatrix(1, colSize, d_vec, false);
+    }
+
+    CuMatrix<T> getCol(long i, T* d_vec = NULL){
+        if(d_vec == NULL)
+            cublasAlloc(rowSize, sizeof(T), (void**)&d_vec);
+        cublasCopy(rowSize, dMat + i, colSize, d_vec, 1);
+        return CuMatrix(rowSize, 1, d_vec, false);
+    }
+
+    CuMatrix<T> setRow(long i, CuMatrix<T> b){
+        T* d_vec = b.dMat;
+        cublasCopy(colSize, d_vec, 1, dMat + colSize * i, 1);
+        return CuMatrix(1, colSize, d_vec, false);
     }
 };
 

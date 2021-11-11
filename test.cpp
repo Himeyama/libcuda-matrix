@@ -5,29 +5,11 @@
 int main(){
     cublasInit();
 
-    float* a_mat = (float*)malloc(sizeof(float) * 3 * 4);
-    float* b_mat = (float*)malloc(sizeof(float) * 3 * 4);
+    CuMatrix<float> a = CuMatrix<float>::rand(3, 5);
+    CuMatrix<float> b = a * 20; a.freeMat();
 
-    for(long i = 0; i < 12; i++){
-        a_mat[i] = i + 1;
-        b_mat[i] = i + 11;
-    }
-        
-
-    CuMatrix<float> a(3, 4, a_mat);    
-    CuMatrix<float> b(3, 4, b_mat);
-
-    CuMatrix<float> c = a.times(b);
-
-    a.inspect();
     b.inspect();
-    c.inspect();
-
-    a.freeMat();
     b.freeMat();
-
-    free(a_mat);
-    free(b_mat);
 
     return 0;
 }
