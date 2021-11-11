@@ -87,7 +87,7 @@ class CuMatrix{
 
     CuMatrix<T> dott(CuMatrix<T> b){
         CuMatrix<T> c(rowSize, b.rowSize, NULL);
-        cublasGemm('N', 'T', c.rowSize, c.colSize, rowSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
+        cublasGemm('N', 'T', c.rowSize, c.colSize, colSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
         return c;
     }
 
@@ -99,25 +99,35 @@ class CuMatrix{
         cublasDaxpy(n, alpha, x, incx, y, incy);
     }
 
-    void operator+=(CuMatrix<T> b){
-        if(rowSize == b.rowSize && colSize == b.colSize)
+    void operator +=(CuMatrix<T> b){
+        if(rowSize == 1 || colSize == 1 || rowSize * colSize == b.rowSize * b.colSize)
+            ;// ベクトルの足し算
+        else if(rowSize != b.rowSize || colSize != b.colSize)
             std::cerr << "+(CuMatrix): 二つの行列の大きさが異なります" << std::endl;
         cublasAxpy(rowSize * colSize, 1, b.dMat, 1, dMat, 1);
     }
 
-    void operator-=(CuMatrix<T> b){
-        if(rowSize == b.rowSize && colSize == b.colSize)
+    void operator -=(CuMatrix<T> b){
+        if(rowSize == 1 || colSize == 1 || rowSize * colSize == b.rowSize * b.colSize)
+            ;// ベクトルの引き算
+        else if(rowSize != b.rowSize || colSize != b.colSize)
             std::cerr << "-(CuMatrix): 二つの行列の大きさが異なります" << std::endl;
         cublasAxpy(rowSize * colSize, -1, b.dMat, 1, dMat, 1);
     }
 
-    CuMatrix<T> operator*(CuMatrix<T> b){
-        CuMatrix<T> c(rowSize, b.colSize, NULL);
+    void operator *=(CuMatrix<T> b){
+        cublasGemm('N', 'N', rowSize, colSize, colSize, 1, dMat, rowSize, b.dMat, b.rowSize, 1, dMat, rowSize);
+    }
+
+    CuMatrix<T> operator *(CuMatrix<T> b){
+        CuMatrix<T> c(rowSize, b.colSize);
+        // c.inspect();
         cublasGemm('N', 'N', c.rowSize, c.colSize, colSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
+        // c.inspect();
         return c;
     }
 
-    CuMatrix<T> operator*(T b){
+    CuMatrix<T> operator *(T b){
         CuMatrix<T> matB = I(colSize, b);
         return *this *(matB);
     }
@@ -206,10 +216,8 @@ class CuMatrix{
         return CuMatrix(rowSize, 1, d_vec, false);
     }
 
-    CuMatrix<T> setRow(long i, CuMatrix<T> b){
-        T* d_vec = b.dMat;
-        cublasCopy(colSize, d_vec, 1, dMat + colSize * i, 1);
-        return CuMatrix(1, colSize, d_vec, false);
+    void setRow(long i, CuMatrix<T> b){
+        cublasCopy(colSize, b.dMat, 1, dMat + colSize * i, 1);
     }
 };
 

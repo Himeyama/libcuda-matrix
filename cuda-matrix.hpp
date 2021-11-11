@@ -20,22 +20,21 @@ class CuMatrix{
 
         CuMatrix<T> tdot(CuMatrix<T> b);
         CuMatrix<T> dott(CuMatrix<T> b);
-        CuMatrix<T> operator-=(CuMatrix<T> b);
-        CuMatrix<T> operator+=(CuMatrix<T> b);
+        void operator -=(CuMatrix<T> b);
+        void operator +=(CuMatrix<T> b);
         CuMatrix<T> operator*(T b);
         CuMatrix<T> operator*(CuMatrix<T> b);
+        void operator *=(CuMatrix<T> b);
         CuMatrix<T> times(CuMatrix<T> b);
         CuMatrix<T> rdivide(CuMatrix<T> b);
         CuMatrix<T> getRow(long i, T* d_vec = NULL);
         CuMatrix<T> getCol(long i, T* d_vec = NULL);
-        CuMatrix<T> setRow(long i, CuMatrix<T> b);
+        void setRow(long i, CuMatrix<T> b);
         CuMatrix copy();
 
         void freeMat();
         void inspect();
         T* toMem();
-
-
 };
 
 #endif
