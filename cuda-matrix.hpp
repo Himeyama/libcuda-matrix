@@ -30,6 +30,7 @@ class CuMatrix{
         CuMatrix<T> getRow(long i, T* d_vec = NULL);
         CuMatrix<T> getCol(long i, T* d_vec = NULL);
         void setRow(long i, CuMatrix<T> b);
+        void setCol(long i, CuMatrix<T> b);
         CuMatrix copy();
 
         void freeMat();

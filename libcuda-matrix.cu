@@ -79,18 +79,23 @@ class CuMatrix{
         cublasDgemm(transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc); 
     }
 
+    // OK
     CuMatrix<T> tdot(CuMatrix<T> b){
         if(rowSize != b.rowSize)
             std::cerr << "tdot(): 行列1の列数と行列2の列数が異なります" << std::endl;
-        int n = colSize, m = b.colSize, k = rowSize;
-        CuMatrix<T> c(n, m);
-        cublasGemm('T', 'N', n, m, k, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
+        int m = colSize, n = b.colSize, k = rowSize;
+        CuMatrix<T> c(m, n);
+        cublasGemm('N', 'T', n, m, k, 1, b.dMat, n, dMat, m, 0, c.dMat, n);
         return c;
     }
 
+    // OK
     CuMatrix<T> dott(CuMatrix<T> b){
-        CuMatrix<T> c(rowSize, b.rowSize);
-        cublasGemm('N', 'T', c.rowSize, c.colSize, colSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
+        if(colSize != b.colSize)
+            std::cerr << "dott(): 行列1の列数と行列2の列数が異なります" << std::endl;
+        int m = rowSize, n = b.rowSize, k = colSize;
+        CuMatrix<T> c(m, n);
+        cublasGemm('T', 'N', n, m, k, 1, b.dMat, k, dMat, k, 0, c.dMat, n);
         return c;
     }
 
@@ -122,14 +127,21 @@ class CuMatrix{
         cublasGemm('N', 'N', rowSize, colSize, colSize, 1, dMat, rowSize, b.dMat, b.rowSize, 1, dMat, rowSize);
     }
 
-    CuMatrix<T> operator *(CuMatrix<T> b){
-        if (b.colSize != rowSize)
+    CuMatrix<T> operator * (CuMatrix<T> b){
+        if (colSize != b.rowSize)
             std::cerr << "*(CuMatrix): 行列1の列数と行列2の行数が異なります" << std::endl;
         // int m = rowSize, n = b.colSize, k = colSize;
-        CuMatrix<T> c(b.rowSize, colSize);
-        cublasGemm('N', 'N', b.rowSize, colSize, rowSize, 1, dMat, b.rowSize, b.dMat, rowSize, 0, c.dMat, c.rowSize);
+        int m = rowSize, n = b.colSize, k = colSize;
+        CuMatrix<T> c(m, n);
+        cublasGemm('N', 'N', n, m, k, 1, b.dMat, n, dMat, k, 0, c.dMat, n);
         return c;
     }
+
+    // CuMatrix<T> operator *(CuMatrix<T> b){
+    //     return b.BA(*this);
+    // }
+
+
 
     CuMatrix<T> operator *(T b){
         CuMatrix<T> matB = I(colSize, b);
@@ -174,8 +186,6 @@ class CuMatrix{
         free(h_c);
         return r;
     }
-
-
 
     void inspect(){
         T *mat = toMem();
@@ -222,6 +232,10 @@ class CuMatrix{
 
     void setRow(long i, CuMatrix<T> b){
         cublasCopy(colSize, b.dMat, 1, dMat + colSize * i, 1);
+    }
+
+    void setCol(long i, CuMatrix<T> b){
+        cublasCopy(rowSize, b.dMat, 1, dMat + i, colSize);
     }
 };
 

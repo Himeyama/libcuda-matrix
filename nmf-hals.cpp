@@ -32,17 +32,17 @@ int main(){
     // c.inspect();
 
     // h.inspect();
-    for(int iter = 0; iter < 1; iter++){
+    for(int iter = 0; iter < 10; iter++){
         a = x.tdot(w); // (m x k)
         b = w.tdot(w); // (k x k)
 
         for(long j = 0; j < k; j++){
-            hj = h.getRow(j, hj.dMat); // H[j, :] (k, m)
-            aj = a.getCol(j, aj.dMat); // A[:, j] (m, k)
-            bj = b.getCol(j, bj.dMat); // B[:, j] (k, k)
+            hj = h.getRow(j, hj.dMat);
+            aj = a.getCol(j, aj.dMat);
+            bj = b.getCol(j, bj.dMat);
             hj += aj;
-            cublasSgemm('T', 'N', hj.rowSize, hj.colSize, bj.rowSize, -1, h.dMat, h.rowSize, bj.dMat, bj.rowSize, 1, hj.dMat, hj.rowSize);
-            
+            hj -= h.tdot(bj);
+
             // 最小値設定
             cublasGetMatrix(1, m, sizeof(float), hj.dMat, 1, h_m_tmp, 1);
             for(int i = 0; i < m; i++)
@@ -51,30 +51,30 @@ int main(){
             h.setRow(j, hj);
         }
         
-        
-        c.inspect();
-        c.freeMat();
-        c = h * x;
-        // cublasSgemm('T', 'N', h.rowSize, h.colSize, x.colSize, 1, h.dMat, h.rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
-
-        c.inspect();
-        x.inspect();
-        h.inspect();
-        
-
+        c = x.dott(h);       
         d = h.dott(h); // (k, k)
+        // h.inspect();
+        // c.inspect();
+        // d.inspect();
+
         for(long j = 0; j < k; j++){
             wj = w.getCol(j, wj.dMat); // (n, 1)
+            // w.inspect();
+            // wj.inspect();
             cublasScopy(1, d.dMat + d.colSize * j + j, 1, djj.dMat, 1); // (1)
             wj *= djj;
             cj = c.getCol(j, cj.dMat); // (n, 1)
-            // cj.inspect();
+            // wj.inspect();
             wj += cj;
 
             // wj.inspect();
+            // wj.inspect();
 
             dj = d.getCol(j, dj.dMat); // (k, 1)
-            cublasSgemm('N', 'N', wj.rowSize, wj.colSize, dj.rowSize, -1, w.dMat, w.rowSize, dj.dMat, dj.rowSize, 1, wj.dMat, wj.rowSize);
+
+            wj -= w * dj;
+            // int _m = w.rowSize, _n = dj.colSize, _k = w.colSize;
+            // cublasSgemm('N', 'N', n, m, k, -1, dj.dMat, n, w.dMat, k, 1, wj.dMat, n);
             
             // wj.inspect();
 
@@ -90,19 +90,17 @@ int main(){
                 for(int i = 0; i < n; i++)
                     h_n_tmp[i] /= norm;
             cublasSetMatrix(1, n, sizeof(float), h_n_tmp, 1, wj.dMat, 1);
-            w.setRow(j, wj);
+            w.setCol(j, wj);
         }
 
-        // CuMatrix<float> wh = w * h;
-        // wh.inspect();
-        // wh.freeMat();
+        CuMatrix<float> wh = w * h;
+        wh.inspect();
+        wh.freeMat();
 
-        // w.inspect();
-        // h.inspect();
-        // x.inspect();
     }
 
-    
+    w.inspect();
+    h.inspect();
 
     x.freeMat();
     w.freeMat();

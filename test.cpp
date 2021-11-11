@@ -5,22 +5,26 @@
 int main(){
     cublasInit();
 
-    float _a[] = {1, 2, 3, 4};
-    float _b[] = {5, 6, 7, 8};
+    float _a[] = {1, 2, 3, 4, 5, 6};
+    float _b[] = {7, 8, 9, 10, 11, 12, 13, 14};
 
-    CuMatrix<float> a(2, 2, _a);
-    CuMatrix<float> b(2, 2, _b);
+    int m = 3, n = 4, k = 2;
 
-    CuMatrix<float> c(2, 2);
+    CuMatrix<float> a(m, k, _a);
+    CuMatrix<float> b(n, k, _b);
+    CuMatrix<float> c(m, n);
+    c = a.dott(b);
+    c.inspect();
 
-    // cublasSgemm('N', 'N', a.rowSize, b.colSize, b.rowSize, 1, a.dMat, a.rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
-
-    c = a * b;
-
+    a.rowSize = k;
+    a.colSize = m; // a(k, m)
+    b.rowSize = k;
+    b.colSize = n;  // b(k, n)
+    c = a.tdot(b);
+    c.inspect();
 
     a.inspect();
     b.inspect();
-    c.inspect();
     
     a.freeMat();
     b.freeMat();
@@ -28,3 +32,4 @@ int main(){
 
     return 0;
 }
+
