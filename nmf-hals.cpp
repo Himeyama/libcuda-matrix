@@ -23,11 +23,13 @@ int main(){
 
     // w = CuMatrix<float>::rand(n, k);
     // h = CuMatrix<float>::rand(k, m);
-    CuMatrix<float> a, b, c, d;
+    CuMatrix<float> a(m, k), b(k, k), c(n, k), d(k, k);
     CuMatrix<float> hj(1, m), aj(m, 1), bj(k, 1), cj(n, 1), dj(k, 1), wj(n, 1), djj(1, 1);
     float* h_m_tmp = (float*)malloc(sizeof(float) * m);
     float* h_n_tmp = (float*)malloc(sizeof(float) * n);
     // float djj;
+
+    // c.inspect();
 
     // h.inspect();
     for(int iter = 0; iter < 1; iter++){
@@ -48,15 +50,18 @@ int main(){
             cublasSetMatrix(1, m, sizeof(float), h_m_tmp, 1, hj.dMat, 1);
             h.setRow(j, hj);
         }
-        // h.inspect();
+        
+        
+        c.inspect();
+        c.freeMat();
+        c = h * x;
+        // cublasSgemm('T', 'N', h.rowSize, h.colSize, x.colSize, 1, h.dMat, h.rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
 
-        // x.inspect();
-        c = x * h; // (n, k)
-        // cublasSgemm('N', 'N', x.rowSize, h.rowSize, x.colSize, 1, x.dMat, n, h.dMat, k, 0, c.dMat, n);
+        c.inspect();
         x.inspect();
         h.inspect();
-        c.inspect();
-        // c.inspect();
+        
+
         d = h.dott(h); // (k, k)
         for(long j = 0; j < k; j++){
             wj = w.getCol(j, wj.dMat); // (n, 1)

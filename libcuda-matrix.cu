@@ -80,13 +80,16 @@ class CuMatrix{
     }
 
     CuMatrix<T> tdot(CuMatrix<T> b){
-        CuMatrix<T> c(colSize, b.colSize, NULL);
-        cublasGemm('T', 'N', c.rowSize, c.colSize, b.rowSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
+        if(rowSize != b.rowSize)
+            std::cerr << "tdot(): 行列1の列数と行列2の列数が異なります" << std::endl;
+        int n = colSize, m = b.colSize, k = rowSize;
+        CuMatrix<T> c(n, m);
+        cublasGemm('T', 'N', n, m, k, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
         return c;
     }
 
     CuMatrix<T> dott(CuMatrix<T> b){
-        CuMatrix<T> c(rowSize, b.rowSize, NULL);
+        CuMatrix<T> c(rowSize, b.rowSize);
         cublasGemm('N', 'T', c.rowSize, c.colSize, colSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
         return c;
     }
@@ -120,10 +123,11 @@ class CuMatrix{
     }
 
     CuMatrix<T> operator *(CuMatrix<T> b){
-        CuMatrix<T> c(rowSize, b.colSize);
-        // c.inspect();
-        cublasGemm('N', 'N', c.rowSize, c.colSize, colSize, 1, dMat, rowSize, b.dMat, b.rowSize, 0, c.dMat, c.rowSize);
-        // c.inspect();
+        if (b.colSize != rowSize)
+            std::cerr << "*(CuMatrix): 行列1の列数と行列2の行数が異なります" << std::endl;
+        // int m = rowSize, n = b.colSize, k = colSize;
+        CuMatrix<T> c(b.rowSize, colSize);
+        cublasGemm('N', 'N', b.rowSize, colSize, rowSize, 1, dMat, b.rowSize, b.dMat, rowSize, 0, c.dMat, c.rowSize);
         return c;
     }
 
@@ -183,7 +187,7 @@ class CuMatrix{
             }
             str += (i == rowSize - 1 ? "]" : "], ");
         }
-        str += "]";
+        str += "] (" +  std::to_string(rowSize) + ", " + std::to_string(colSize) + ")";
         std::cout << str << std::endl;
         free(mat);
     }
