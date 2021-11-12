@@ -4,16 +4,10 @@
 #include <iostream>
 #include <typeinfo>
 
-int main(){
-    cublasInit();
 
-    long m = 2, n = 6, k = 2;
-    double eps = 1e-4;
-
-    CuMatrix<float> x, w, h, tmp;
-
-    float h_x[] = {1,1,2,1,3,1.2,4,1,5,0.8,6,1};
-    x = CuMatrix<float>(n, m, h_x);
+void NMF(float *data, float eps, long m, long n, long k){
+    CuMatrix<float> x, w, h;
+    x = CuMatrix<float>(n, m, data);
     w = CuMatrix<float>(n, k);
     h = CuMatrix<float>(k, m);
 
@@ -67,29 +61,40 @@ int main(){
             w.setCol(j, wj);
         }
 
-        CuMatrix<float> wh = w * h;
-        wh.inspect();
-        wh.freeMat();
+        w.inspect();
+        h.inspect();
     }
-
-    w.inspect();
-    h.inspect();
-
-    x.freeMat();
-    w.freeMat();
-    h.freeMat();
 
     hj.freeMat();
     aj.freeMat();
     bj.freeMat();
+    cj.freeMat();
+    dj.freeMat();
     wj.freeMat();
     djj.freeMat();
-
     a.freeMat();
     b.freeMat();
-
+    c.freeMat();
+    d.freeMat();
+    // x.freeMat();
+    w.freeMat();
+    h.freeMat();
     free(h_m_tmp);
     free(h_n_tmp);
+}
+
+
+int main(){
+    cublasInit();
+
+    long m = 2, n = 6, k = 2;
+    double eps = 1e-4;
+    
+    float h_x[] = {1,1,2,1,3,1.2,4,1,5,0.8,6,1};
+    // CuMatrix<float> x = CuMatrix<float>(n, m, h_x);
+    NMF(h_x, eps, m, n, k);
+    // x.freeMat();
+   
 
     return 0;
 }
