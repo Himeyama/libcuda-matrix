@@ -65,8 +65,10 @@ class CuMatrix{
     }
 
     void freeMat(){
-        if(alloced)
+        if(alloced){
             cublasFree(dMat);
+            dMat = NULL;
+        }
         alloced = false;
     }
 
@@ -80,21 +82,43 @@ class CuMatrix{
     }
 
     // OK
-    CuMatrix<T> tdot(CuMatrix<T> b){
+    CuMatrix<T> operator * (CuMatrix<T> b){
+        if (colSize != b.rowSize)
+            std::cerr << "*(CuMatrix): 行列1の行数と行列2の列数が異なります" << std::endl;
+        // int m = rowSize, n = b.colSize, k = colSize;
+        int m = rowSize, n = b.colSize, k = colSize;
+        CuMatrix<T> c(m, n);
+        cublasGemm('N', 'N', n, m, k, 1, b.dMat, n, dMat, k, 0, c.dMat, n);
+        return c;
+    }
+
+    void dot(CuMatrix<T> b, T* ptr = NULL){
+        if(colSize != b.rowSize)
+            std::cerr << "dot(): 行列1の行数と行列2の列数が異なります" << std::endl;
+        int m = rowSize, n = b.colSize, k = colSize;
+        // CuMatrix<T> c(m, n, ptr, false);
+        // cublasGemm('N', 'N', n, m, k, 1, b.dMat, n, dMat, k, 0, c.dMat, n);
+        cublasGemm('N', 'N', n, m, k, 1, b.dMat, n, dMat, k, 0, ptr, n);
+        // return c;
+        // return ptr;
+    }
+
+    // OK
+    CuMatrix<T> tdot(CuMatrix<T> b, T* ptr = NULL){
         if(rowSize != b.rowSize)
             std::cerr << "tdot(): 行列1の列数と行列2の列数が異なります" << std::endl;
         int m = colSize, n = b.colSize, k = rowSize;
-        CuMatrix<T> c(m, n);
+        CuMatrix<T> c(m, n, ptr, ptr == NULL);
         cublasGemm('N', 'T', n, m, k, 1, b.dMat, n, dMat, m, 0, c.dMat, n);
         return c;
     }
 
     // OK
-    CuMatrix<T> dott(CuMatrix<T> b){
+    CuMatrix<T> dott(CuMatrix<T> b, T* ptr = NULL){
         if(colSize != b.colSize)
             std::cerr << "dott(): 行列1の列数と行列2の列数が異なります" << std::endl;
         int m = rowSize, n = b.rowSize, k = colSize;
-        CuMatrix<T> c(m, n);
+        CuMatrix<T> c(m, n, ptr, ptr == NULL);
         cublasGemm('T', 'N', n, m, k, 1, b.dMat, k, dMat, k, 0, c.dMat, n);
         return c;
     }
@@ -125,16 +149,6 @@ class CuMatrix{
 
     void operator *=(CuMatrix<T> b){
         cublasGemm('N', 'N', rowSize, colSize, colSize, 1, dMat, rowSize, b.dMat, b.rowSize, 1, dMat, rowSize);
-    }
-
-    CuMatrix<T> operator * (CuMatrix<T> b){
-        if (colSize != b.rowSize)
-            std::cerr << "*(CuMatrix): 行列1の列数と行列2の行数が異なります" << std::endl;
-        // int m = rowSize, n = b.colSize, k = colSize;
-        int m = rowSize, n = b.colSize, k = colSize;
-        CuMatrix<T> c(m, n);
-        cublasGemm('N', 'N', n, m, k, 1, b.dMat, n, dMat, k, 0, c.dMat, n);
-        return c;
     }
 
     // CuMatrix<T> operator *(CuMatrix<T> b){

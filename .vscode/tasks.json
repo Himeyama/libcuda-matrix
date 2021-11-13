@@ -1,0 +1,66 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++ アクティブなファイルのビルド",
+            "command": "/usr/local/cuda-11.5/bin/nvcc",
+            "args": [
+                "-ccbin",
+                "/usr/bin/gcc",
+                "-std=c++11",
+                "${file}",
+                "-o",
+                "${fileBasenameNoExtension}",
+                "-gencode",
+                "arch=compute_52,code=sm_52",
+	            "-gencode",
+                "arch=compute_60,code=sm_60",
+            	"-gencode", "arch=compute_61,code=sm_61",
+                "-gencode", "arch=compute_70,code=sm_70",
+	            "-gencode", "arch=compute_75,code=sm_75",
+                "-lcublas", "-lcuda-matrix",
+                "-I.",
+                "-L.",
+                "-g"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "デバッガーによって生成されたタスク。"
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++ 共有ライブラリのビルド",
+            "command": "/usr/local/cuda-11.5/bin/nvcc",
+            "args": [
+                "-ccbin",
+                "/usr/bin/gcc",
+                "-std=c++11",
+                "${file}",
+                "-o",
+                "${fileBasenameNoExtension}.so",
+                "-gencode",
+                "arch=compute_52,code=sm_52",
+	            "-gencode",
+                "arch=compute_60,code=sm_60",
+            	"-gencode", "arch=compute_61,code=sm_61",
+                "-gencode", "arch=compute_70,code=sm_70",
+	            "-gencode", "arch=compute_75,code=sm_75",
+                "-lcublas",
+                "--shared", "-Xcompiler", "-fPIC",
+                "-g"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "デバッガーによって生成されたタスク。"
+        }
+    ],
+    "version": "2.0.0"
+}

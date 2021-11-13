@@ -2,6 +2,10 @@
 #include <cublas.h>
 #include <cuda-matrix.hpp>
 
+void func(float *data){
+    data[0] *= -1;
+}
+
 int main(){
     cublasInit();
 
@@ -29,6 +33,9 @@ int main(){
     a.freeMat();
     b.freeMat();
     c.freeMat();
+
+    float ary[] = {1, 2, 3, 4};
+    func(ary);
 
     return 0;
 }

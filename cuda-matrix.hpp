@@ -18,8 +18,10 @@ class CuMatrix{
         static CuMatrix rand(long row, long col);
         static CuMatrix I(long, T = 1);
 
-        CuMatrix<T> tdot(CuMatrix<T> b);
-        CuMatrix<T> dott(CuMatrix<T> b);
+        // CuMatrix<T> dot(CuMatrix<T> b, T* ptr = NULL);
+        void dot(CuMatrix<T> b, T* ptr = NULL);
+        CuMatrix<T> tdot(CuMatrix<T> b, T* ptr = NULL);
+        CuMatrix<T> dott(CuMatrix<T> b, T* ptr = NULL);
         void operator -=(CuMatrix<T> b);
         void operator +=(CuMatrix<T> b);
         CuMatrix<T> operator*(T b);
