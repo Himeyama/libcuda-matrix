@@ -92,35 +92,28 @@ class CuMatrix{
         return c;
     }
 
+    // OK
     void dot(CuMatrix<T> b, T* ptr = NULL){
         if(colSize != b.rowSize)
             std::cerr << "dot(): 行列1の行数と行列2の列数が異なります" << std::endl;
         int m = rowSize, n = b.colSize, k = colSize;
-        // CuMatrix<T> c(m, n, ptr, false);
-        // cublasGemm('N', 'N', n, m, k, 1, b.dMat, n, dMat, k, 0, c.dMat, n);
         cublasGemm('N', 'N', n, m, k, 1, b.dMat, n, dMat, k, 0, ptr, n);
-        // return c;
-        // return ptr;
     }
 
     // OK
-    CuMatrix<T> tdot(CuMatrix<T> b, T* ptr = NULL){
+    void tdot(CuMatrix<T> b, T* ptr = NULL){
         if(rowSize != b.rowSize)
             std::cerr << "tdot(): 行列1の列数と行列2の列数が異なります" << std::endl;
         int m = colSize, n = b.colSize, k = rowSize;
-        CuMatrix<T> c(m, n, ptr, ptr == NULL);
-        cublasGemm('N', 'T', n, m, k, 1, b.dMat, n, dMat, m, 0, c.dMat, n);
-        return c;
+        cublasGemm('N', 'T', n, m, k, 1, b.dMat, n, dMat, m, 0, ptr, n);
     }
 
     // OK
-    CuMatrix<T> dott(CuMatrix<T> b, T* ptr = NULL){
+    void dott(CuMatrix<T> b, T* ptr = NULL){
         if(colSize != b.colSize)
             std::cerr << "dott(): 行列1の列数と行列2の列数が異なります" << std::endl;
         int m = rowSize, n = b.rowSize, k = colSize;
-        CuMatrix<T> c(m, n, ptr, ptr == NULL);
-        cublasGemm('T', 'N', n, m, k, 1, b.dMat, k, dMat, k, 0, c.dMat, n);
-        return c;
+        cublasGemm('T', 'N', n, m, k, 1, b.dMat, k, dMat, k, 0, ptr, n);
     }
 
     void cublasAxpy(int n, float alpha, const float *x, int incx, float *y, int incy){
@@ -230,18 +223,18 @@ class CuMatrix{
         cublasDcopy(n, x, incx, y, incy);
     }
 
-    CuMatrix<T> getRow(long i, T* d_vec = NULL){
+    void getRow(long i, T* d_vec = NULL){
         if(d_vec == NULL)
             cublasAlloc(colSize, sizeof(T), (void**)&d_vec);
         cublasCopy(colSize, dMat + colSize * i, 1, d_vec, 1);
-        return CuMatrix(1, colSize, d_vec, false);
+        // return CuMatrix(1, colSize, d_vec, false);
     }
 
-    CuMatrix<T> getCol(long i, T* d_vec = NULL){
+    void getCol(long i, T* d_vec = NULL){
         if(d_vec == NULL)
             cublasAlloc(rowSize, sizeof(T), (void**)&d_vec);
         cublasCopy(rowSize, dMat + i, colSize, d_vec, 1);
-        return CuMatrix(rowSize, 1, d_vec, false);
+        // return CuMatrix(rowSize, 1, d_vec, false);
     }
 
     void setRow(long i, CuMatrix<T> b){

@@ -20,8 +20,8 @@ class CuMatrix{
 
         // CuMatrix<T> dot(CuMatrix<T> b, T* ptr = NULL);
         void dot(CuMatrix<T> b, T* ptr = NULL);
-        CuMatrix<T> tdot(CuMatrix<T> b, T* ptr = NULL);
-        CuMatrix<T> dott(CuMatrix<T> b, T* ptr = NULL);
+        void tdot(CuMatrix<T> b, T* ptr = NULL);
+        void dott(CuMatrix<T> b, T* ptr = NULL);
         void operator -=(CuMatrix<T> b);
         void operator +=(CuMatrix<T> b);
         CuMatrix<T> operator*(T b);
@@ -29,8 +29,8 @@ class CuMatrix{
         void operator *=(CuMatrix<T> b);
         CuMatrix<T> times(CuMatrix<T> b);
         CuMatrix<T> rdivide(CuMatrix<T> b);
-        CuMatrix<T> getRow(long i, T* d_vec = NULL);
-        CuMatrix<T> getCol(long i, T* d_vec = NULL);
+        void getRow(long i, T* d_vec = NULL);
+        void getCol(long i, T* d_vec = NULL);
         void setRow(long i, CuMatrix<T> b);
         void setCol(long i, CuMatrix<T> b);
         CuMatrix copy();
