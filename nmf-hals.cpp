@@ -6,7 +6,7 @@ template <class T>
 class NMF{
     public:
     long n_samples, n_components, n_features;
-    CuMatrix <T> w, h, y;
+    T *W, *H, *Y;
 
     void cublasCopy(int n, const float *x, int incx, float *y, int incy){
         cublasScopy(n, x, incx, y, incy);
@@ -16,14 +16,10 @@ class NMF{
         cublasDcopy(n, x, incx, y, incy);
     }
 
-    NMF(T eps, long m, long n, long k, T *dat){
+    NMF(long m, long n, long k, T *dat, T eps = 1e-4){
         n_samples = n;
         n_features = m;
         n_components = k;
-
-        w = CuMatrix<T>(n, k);
-        h = CuMatrix<T>(k, m);
-        y = CuMatrix<T>(n, m);
 
         CuMatrix<T> 
             x(n, m, dat),
@@ -39,7 +35,10 @@ class NMF{
             ej(n, 1), 
             fj(k, m), 
             wj(n, 1), 
-            djj(1, 1);
+            djj(1, 1),
+            w(n, k),
+            h(k, m),
+            y(n, m);
         T* h_m_tmp = (T*)malloc(sizeof(T) * m);
         T* h_n_tmp = (T*)malloc(sizeof(T) * n);
 
@@ -109,9 +108,11 @@ class NMF{
         free(h_n_tmp);
         h_m_tmp = NULL;
         h_n_tmp = NULL;
-    }
 
-    void freeMat(){
+        W = w.toMem();
+        H = h.toMem();
+        Y = y.toMem();
+
         w.freeMat();
         h.freeMat();
         y.freeMat();
@@ -123,15 +124,8 @@ int main(){
     cublasInit();
 
     long m = 2, n = 6, k = 2;
-    double eps = 1e-4;
-    
-    double h_x[] = {1,1,2,1,3,1.2,4,1,5,0.8,6,1};
-    NMF<double> result(eps, m, n, k, h_x);
-    
-    result.w.inspect();
-    result.h.inspect();
-    result.y.inspect();
-    result.freeMat();
+    double data[] = {1,1,2,1,3,1.2,4,1,5,0.8,6,1};
+    NMF<double> result(m, n, k, data);
 
     return 0;
 }
