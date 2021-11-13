@@ -9,7 +9,7 @@ NVCC = nvcc
 	-gencode arch=compute_75,code=sm_75
 
 libcuda-matrix.so: libcuda-matrix.cu
-	$(NVCC) $(OPT) -lcublas --shared -Xcompiler -fPIC $^ -o $@
+	$(NVCC) $(OPT) --compiler-options -Wall --compiler-options -Wextra -lcublas --shared -Xcompiler -fPIC $^ -o $@
 
 test: test.cpp
 	$(NVCC) $(OPT) -lcublas -lcuda-matrix -L. -I. $^ -o $@
@@ -18,7 +18,7 @@ nmf: nmf.cpp
 	$(NVCC) $(OPT) -lcublas -lcuda-matrix -L. -I. $^ -o $@
 
 nmf-hals: nmf-hals.cpp
-	$(NVCC) $(OPT) -lcublas -lcuda-matrix -L. -I. $^ -o $@
+	$(NVCC) $(OPT) --compiler-options -Wall --compiler-options -Wextra -lcublas -lcuda-matrix -L. -I. $^ -o $@
 
 install: libcuda-matrix.so
 	install -s $^ $(libdir)

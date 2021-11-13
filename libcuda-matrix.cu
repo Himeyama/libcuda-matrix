@@ -8,13 +8,13 @@ template <class T>
 class CuMatrix{  
     public:
     T *dMat;
-    long rowSize;
-    long colSize;
+    std::int64_t rowSize;
+    std::int64_t colSize;
     bool alloced;
 
     CuMatrix(){};
 
-    CuMatrix(long row, long col, T *mat = NULL, bool mode = true){
+    CuMatrix(std::int64_t row, std::int64_t col, T *mat = NULL, bool mode = true){
         // mode == true ? host : device
         rowSize = row;
         colSize = col;
@@ -37,12 +37,12 @@ class CuMatrix{
         if(zero) free(mat);
     }
 
-    static CuMatrix rand(long row, long col){
+    static CuMatrix rand(std::int64_t row, std::int64_t col){
         std::random_device rd;
         std::default_random_engine engine(rd());
         std::uniform_real_distribution<> urd(0, 1);
         T *x = (T*)malloc(sizeof(T) * row * col);
-        for(long i = 0; i < row * col; i++)
+        for(std::int64_t i = 0; i < row * col; i++)
             x[i] = urd(engine);
         CuMatrix<T> r(row, col, x);
         free(x);
@@ -55,10 +55,10 @@ class CuMatrix{
         return cp;
     }
 
-    static CuMatrix I(long n, T k = 1){
+    static CuMatrix I(std::int64_t n, T k = 1){
         T *x = (T*)malloc(sizeof(T) * n * n);
         memset(x, 0, sizeof(T) * n * n);
-        for(long i = 0; i < n; i++)
+        for(std::int64_t i = 0; i < n; i++)
             x[i * n + i] = k;
         CuMatrix<T> r(n, n, x);
         return r;
@@ -73,11 +73,11 @@ class CuMatrix{
     }
 
     // 型によって関数を分ける
-    void cublasGemm(char transa, char transb, int m, int n, int k, float alpha, const float *A, int lda, const float *B, int ldb, float beta, float *C, int ldc){
+    void cublasGemm(char transa, char transb, std::int64_t m, std::int64_t n, std::int64_t k, float alpha, const float *A, std::int64_t lda, const float *B, std::int64_t ldb, float beta, float *C, std::int64_t ldc){
         cublasSgemm(transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
     }
 
-    void cublasGemm(char transa, char transb, int m, int n, int k, double alpha, const double *A, int lda, const double *B, int ldb, double beta, double *C, int ldc){
+    void cublasGemm(char transa, char transb, std::int64_t m, std::int64_t n, std::int64_t k, double alpha, const double *A, std::int64_t lda, const double *B, std::int64_t ldb, double beta, double *C, std::int64_t ldc){
         cublasDgemm(transa, transb, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc); 
     }
 
@@ -85,8 +85,8 @@ class CuMatrix{
     CuMatrix<T> operator * (CuMatrix<T> b){
         if (colSize != b.rowSize)
             std::cerr << "*(CuMatrix): 行列1の行数と行列2の列数が異なります" << std::endl;
-        // int m = rowSize, n = b.colSize, k = colSize;
-        int m = rowSize, n = b.colSize, k = colSize;
+        // std::int64_t m = rowSize, n = b.colSize, k = colSize;
+        std::int64_t m = rowSize, n = b.colSize, k = colSize;
         CuMatrix<T> c(m, n);
         cublasGemm('N', 'N', n, m, k, 1, b.dMat, n, dMat, k, 0, c.dMat, n);
         return c;
@@ -96,7 +96,7 @@ class CuMatrix{
     void dot(CuMatrix<T> b, T* ptr = NULL){
         if(colSize != b.rowSize)
             std::cerr << "dot(): 行列1の行数と行列2の列数が異なります" << std::endl;
-        int m = rowSize, n = b.colSize, k = colSize;
+        std::int64_t m = rowSize, n = b.colSize, k = colSize;
         cublasGemm('N', 'N', n, m, k, 1, b.dMat, n, dMat, k, 0, ptr, n);
     }
 
@@ -104,7 +104,7 @@ class CuMatrix{
     void tdot(CuMatrix<T> b, T* ptr = NULL){
         if(rowSize != b.rowSize)
             std::cerr << "tdot(): 行列1の列数と行列2の列数が異なります" << std::endl;
-        int m = colSize, n = b.colSize, k = rowSize;
+        std::int64_t m = colSize, n = b.colSize, k = rowSize;
         cublasGemm('N', 'T', n, m, k, 1, b.dMat, n, dMat, m, 0, ptr, n);
     }
 
@@ -112,15 +112,15 @@ class CuMatrix{
     void dott(CuMatrix<T> b, T* ptr = NULL){
         if(colSize != b.colSize)
             std::cerr << "dott(): 行列1の列数と行列2の列数が異なります" << std::endl;
-        int m = rowSize, n = b.rowSize, k = colSize;
+        std::int64_t m = rowSize, n = b.rowSize, k = colSize;
         cublasGemm('T', 'N', n, m, k, 1, b.dMat, k, dMat, k, 0, ptr, n);
     }
 
-    void cublasAxpy(int n, float alpha, const float *x, int incx, float *y, int incy){
+    void cublasAxpy(std::int64_t n, float alpha, const float *x, std::int64_t incx, float *y, std::int64_t incy){
         cublasSaxpy(n, alpha, x, incx, y, incy);
     }
 
-    void cublasAxpy(int n, double alpha, const double *x, int incx, double *y, int incy){
+    void cublasAxpy(std::int64_t n, double alpha, const double *x, std::int64_t incx, double *y, std::int64_t incy){
         cublasDaxpy(n, alpha, x, incx, y, incy);
     }
 
@@ -144,12 +144,6 @@ class CuMatrix{
         cublasGemm('N', 'N', rowSize, colSize, colSize, 1, dMat, rowSize, b.dMat, b.rowSize, 1, dMat, rowSize);
     }
 
-    // CuMatrix<T> operator *(CuMatrix<T> b){
-    //     return b.BA(*this);
-    // }
-
-
-
     CuMatrix<T> operator *(T b){
         CuMatrix<T> matB = I(colSize, b);
         return *this *(matB);
@@ -164,7 +158,7 @@ class CuMatrix{
         T *h_a = toMem();
         T *h_b = b.toMem();
         T *h_c = (T*)malloc(sizeof(T) * rowSize * colSize);
-        for(long i = 0; i < rowSize * colSize; i++)
+        for(std::int64_t i = 0; i < rowSize * colSize; i++)
             h_c[i] = h_a[i] * h_b[i];
         r = CuMatrix(rowSize, colSize, h_c);
         free(h_a);
@@ -182,7 +176,7 @@ class CuMatrix{
         T *h_a = toMem();
         T *h_b = b.toMem();
         T *h_c = (T*)malloc(sizeof(T) * rowSize * colSize);
-        for(long i = 0; i < rowSize * colSize; i++){
+        for(std::int64_t i = 0; i < rowSize * colSize; i++){
             if(h_b[i] == 0)
                 std::cerr << "rdivide(): ゼロ除算" << std::endl;
             h_c[i] = h_a[i] / h_b[i];
@@ -197,9 +191,9 @@ class CuMatrix{
     void inspect(){
         T *mat = toMem();
         std::string str = "[";
-        for(long i = 0; i < rowSize; i++){
+        for(std::int64_t i = 0; i < rowSize; i++){
             str += "[";
-            for(long j = 0; j < colSize; j++){
+            for(std::int64_t j = 0; j < colSize; j++){
                 str += std::to_string(mat[i * colSize + j]) + (j == colSize - 1 ? "" : ", ");
             }
             str += (i == rowSize - 1 ? "]" : "], ");
@@ -215,33 +209,33 @@ class CuMatrix{
         return mat;
     }
 
-    void cublasCopy(int n, const float *x, int incx, float *y, int incy){
+    void cublasCopy(std::int64_t n, const float *x, std::int64_t incx, float *y, std::int64_t incy){
         cublasScopy(n, x, incx, y, incy);
     }
 
-    void cublasCopy(int n, const double *x, int incx, double *y, int incy){
+    void cublasCopy(std::int64_t n, const double *x, std::int64_t incx, double *y, std::int64_t incy){
         cublasDcopy(n, x, incx, y, incy);
     }
 
-    void getRow(long i, T* d_vec = NULL){
+    void getRow(std::int64_t i, T* d_vec = NULL){
         if(d_vec == NULL)
             cublasAlloc(colSize, sizeof(T), (void**)&d_vec);
         cublasCopy(colSize, dMat + colSize * i, 1, d_vec, 1);
         // return CuMatrix(1, colSize, d_vec, false);
     }
 
-    void getCol(long i, T* d_vec = NULL){
+    void getCol(std::int64_t i, T* d_vec = NULL){
         if(d_vec == NULL)
             cublasAlloc(rowSize, sizeof(T), (void**)&d_vec);
         cublasCopy(rowSize, dMat + i, colSize, d_vec, 1);
         // return CuMatrix(rowSize, 1, d_vec, false);
     }
 
-    void setRow(long i, CuMatrix<T> b){
+    void setRow(std::int64_t i, CuMatrix<T> b){
         cublasCopy(colSize, b.dMat, 1, dMat + colSize * i, 1);
     }
 
-    void setCol(long i, CuMatrix<T> b){
+    void setCol(std::int64_t i, CuMatrix<T> b){
         cublasCopy(rowSize, b.dMat, 1, dMat + i, colSize);
     }
 };

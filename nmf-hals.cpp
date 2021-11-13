@@ -91,8 +91,6 @@ class NMF{
         }
 
         w.dot(h, y.dMat);
-        T* result = y.toMem();
-
         hj.freeMat();
         aj.freeMat();
         bj.freeMat();
