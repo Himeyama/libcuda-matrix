@@ -119,13 +119,5 @@ class NMF{
     }
 };
 
-
-int main(){
-    cublasInit();
-
-    long m = 2, n = 6, k = 2;
-    double data[] = {1,1,2,1,3,1.2,4,1,5,0.8,6,1};
-    NMF<double> result(m, n, k, data);
-
-    return 0;
-}
+template class NMF<float>;
+template class NMF<double>;

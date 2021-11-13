@@ -221,14 +221,12 @@ class CuMatrix{
         if(d_vec == NULL)
             cublasAlloc(colSize, sizeof(T), (void**)&d_vec);
         cublasCopy(colSize, dMat + colSize * i, 1, d_vec, 1);
-        // return CuMatrix(1, colSize, d_vec, false);
     }
 
     void getCol(std::int64_t i, T* d_vec = NULL){
         if(d_vec == NULL)
             cublasAlloc(rowSize, sizeof(T), (void**)&d_vec);
         cublasCopy(rowSize, dMat + i, colSize, d_vec, 1);
-        // return CuMatrix(rowSize, 1, d_vec, false);
     }
 
     void setRow(std::int64_t i, CuMatrix<T> b){

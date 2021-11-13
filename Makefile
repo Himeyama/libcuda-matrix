@@ -14,11 +14,11 @@ libcuda-matrix.so: libcuda-matrix.cu
 test: test.cpp
 	$(NVCC) $(OPT) -lcublas -lcuda-matrix -L. -I. $^ -o $@
 
-nmf: nmf.cpp
-	$(NVCC) $(OPT) -lcublas -lcuda-matrix -L. -I. $^ -o $@
+libnmf-hals.so: nmf-hals.cpp
+	$(NVCC) $(OPT) --compiler-options -Wall --compiler-options -Wextra -lcublas -lcuda-matrix --shared -Xcompiler -fPIC -L. -I. $^ -o $@
 
-nmf-hals: nmf-hals.cpp
-	$(NVCC) $(OPT) --compiler-options -Wall --compiler-options -Wextra -lcublas -lcuda-matrix -L. -I. $^ -o $@
+nmf: nmf-test.cpp
+	$(NVCC) $(OPT) -lnmf-hals -lcublas -L. -I. $^ -o $@
 
 install: libcuda-matrix.so
 	install -s $^ $(libdir)
