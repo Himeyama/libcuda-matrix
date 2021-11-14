@@ -17,32 +17,32 @@ class NMF{
     }
 
     NMF(long m, long n, long k, T *dat, T eps = 1e-4){
-        n_samples = n;
-        n_features = m;
+        n_samples = m;
+        n_features = n;
         n_components = k;
 
         CuMatrix<T> 
-            x(n, m, dat),
-            a(m, k), 
+            x(m, n, dat),
+            a(n, k), 
             b(k, k), 
-            c(n, k), 
+            c(m, k), 
             d(k, k),
-            hj(1, m),
-            aj(m, 1), 
+            hj(1, n),
+            aj(n, 1), 
             bj(k, 1), 
-            cj(n, 1), 
+            cj(m, 1), 
             dj(k, 1), 
-            ej(n, 1), 
-            fj(k, m), 
-            wj(n, 1), 
+            ej(m, 1), 
+            fj(k, n), 
+            wj(m, 1), 
             djj(1, 1),
-            w(n, k),
-            h(k, m),
-            y(n, m);
-        T* h_m_tmp = (T*)malloc(sizeof(T) * m);
-        T* h_n_tmp = (T*)malloc(sizeof(T) * n);
+            w(m, k),
+            h(k, n),
+            y(m, n);
+        T* h_m_tmp = (T*)malloc(sizeof(T) * n);
+        T* h_n_tmp = (T*)malloc(sizeof(T) * m);
 
-        for(int iter = 0; iter < 10; iter++){
+        for(int iter = 0; iter < 100; iter++){
             x.tdot(w, a.dMat);
             w.tdot(w, b.dMat);
 
@@ -55,10 +55,10 @@ class NMF{
                 hj -= fj;
 
                 // 最小値設定
-                cublasGetMatrix(1, m, sizeof(T), hj.dMat, 1, h_m_tmp, 1);
-                for(int i = 0; i < m; i++)
+                cublasGetMatrix(1, n, sizeof(T), hj.dMat, 1, h_m_tmp, 1);
+                for(int i = 0; i < n; i++)
                     h_m_tmp[i] = h_m_tmp[i] < eps ? eps : h_m_tmp[i];
-                cublasSetMatrix(1, m, sizeof(T), h_m_tmp, 1, hj.dMat, 1);
+                cublasSetMatrix(1, n, sizeof(T), h_m_tmp, 1, hj.dMat, 1);
                 h.setRow(j, hj);
             }
             x.dott(h, c.dMat);       
@@ -74,17 +74,17 @@ class NMF{
                 w.dot(dj, ej.dMat);
                 wj -= ej;
 
-                cublasGetMatrix(1, n, sizeof(T), wj.dMat, 1, h_n_tmp, 1);
+                cublasGetMatrix(1, m, sizeof(T), wj.dMat, 1, h_n_tmp, 1);
                 T norm = 0;
-                for(int i = 0; i < n; i++){
+                for(int i = 0; i < m; i++){
                     h_n_tmp[i] = h_n_tmp[i] < eps ? eps : h_n_tmp[i];
                     norm += h_n_tmp[i] * h_n_tmp[i];
                 }
                 norm = sqrt(norm);
                 if(norm > 0)
-                    for(int i = 0; i < n; i++)
+                    for(int i = 0; i < m; i++)
                         h_n_tmp[i] /= norm;
-                cublasSetMatrix(1, n, sizeof(T), h_n_tmp, 1, wj.dMat, 1);
+                cublasSetMatrix(1, m, sizeof(T), h_n_tmp, 1, wj.dMat, 1);
                 w.setCol(j, wj);
             }
         }
